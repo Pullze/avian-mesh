@@ -106,6 +106,8 @@ def perspective_projection(points, rotation, translation,
     K[:,2,2] = 1.
     K[:,:-1, -1] = camera_center
 
+    print(K)
+
     # Apply camera intrinsicsrf
     points = points / points[:,:,-1].unsqueeze(-1)
     projected_points = torch.einsum('bij,bkj->bki', K, points)

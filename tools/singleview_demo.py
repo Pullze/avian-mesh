@@ -11,7 +11,7 @@ from optimization import OptimizeSV, base_renderer
 
 from datasets import Cowbird_Dataset
 from keypoint_detection import load_detector, postprocess
-from utils.vis_bird import render_sample
+from utils.vis_bird import render_sample, render_sample_new
 
 
 parser = argparse.ArgumentParser()
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
 
     # Run on the indexed sample from the validset
-    imgs, target_kpts, target_masks, meta = valid_set[args.index]
+    imgs, target_kpts, target_masks, meta = valid_set[89]
     imgs = imgs[None]
 
     with torch.no_grad():
@@ -68,6 +68,8 @@ if __name__ == '__main__':
         mask_in = pred_mask
         p_est, b_est = regressor(kpts_in, mask_in)
         pose, tran, bone = regressor.postprocess(p_est, b_est)
+        # print(tran)
+        print(pose.shape, tran.shape, bone.shape)
 
     # Optimization
     ignored = pred_kpts[:, :, 2] < 0.3
@@ -76,6 +78,7 @@ if __name__ == '__main__':
     pose_op, bone_op, tran_op, model_mesh = optimizer(pose, bone, tran, 
                                           focal_length=2167, camera_center=128, 
                                           keypoints=opt_kpts, masks=mask_in.squeeze(1))
+    # print(tran_op)
 
 
     # Save reconstruction results
@@ -86,15 +89,16 @@ if __name__ == '__main__':
         img_out = unnormalize(img)
         img_out = img_out.permute(1,2,0)[:,:,[2,1,0]] * 255
         img_opt, _ = render_sample(bird, model_mesh[i], background=img_out)
+        # img_opt, _ = render_sample_new(bird, model_mesh[i])
 
         img_save = np.zeros([256, 256*2, 3]).astype(np.uint8)
         img_save[:, 256*0:256*(0+1), :] = img_out
         img_save[:, 256*1:256*(1+1), :] = img_opt
 
-        plt.imsave(args.outdir+'/{:02d}.png'.format(i), img_save) 
+        plt.imsave(args.outdir+'/{:02d}_new.png'.format(i), img_save) 
 
 
-
+ 
 
 
 

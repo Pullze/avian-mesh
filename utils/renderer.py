@@ -29,6 +29,7 @@ class Renderer:
         mesh = trimesh.Trimesh(vertices, self.faces)
         rot = trimesh.transformations.rotation_matrix(
             np.radians(180), [1, 0, 0])
+        print(rot)
         mesh.apply_transform(rot)
         mesh = pyrender.Mesh.from_trimesh(mesh, material=material)
 
@@ -38,10 +39,15 @@ class Renderer:
         camera_pose = np.eye(4)
         camera_pose[:3, :3] = cam_rot
         camera_pose[:3, 3] = cam_t
+        print(camera_pose)
+        print(self.focal_length, self.camera_center)
         camera = pyrender.IntrinsicsCamera(fx=self.focal_length, fy=self.focal_length,
                                            cx=self.camera_center[0], cy=self.camera_center[1],
                                            zfar=1000)
         scene.add(camera, pose=camera_pose)
+
+    
+        print(camera.get_projection_matrix(width=256, height=256))
 
 
         light = pyrender.DirectionalLight(color=[1.0, 1.0, 1.0], intensity=1)
@@ -73,6 +79,7 @@ class Silhouette_Renderer:
                                        point_size=1.0)
         self.focal_length = focal_length
         self.camera_center = center
+        print(self.focal_length, self.camera_center)
         self.camera = pyrender.IntrinsicsCamera(fx=self.focal_length, fy=self.focal_length,
                                                 cx=self.camera_center[0], cy=self.camera_center[1],
                                                 zfar=1000)
