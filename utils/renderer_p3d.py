@@ -19,14 +19,15 @@ from utils.geometry import perspective_projection
 
 class RendererP3D:
     def __init__(self, focal_length=2167, faces=None, center=None, img_size=256, background=None) -> None:
+        # self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.focal_length = focal_length
         self.faces = torch.IntTensor(faces)
 
     
-        E = torch.FloatTensor([[1, 0, 0, 0],
-                                [0, -1, 0, 0],
-                                [0, 0, -1, 0],
-                                [0, 0, 0, 1]])
+        # E = torch.FloatTensor([[1, 0, 0, 0],
+        #                         [0, -1, 0, 0],
+        #                         [0, 0, -1, 0],
+        #                         [0, 0, 0, 1]])
         
         self.K = torch.FloatTensor([
             [2167,   0,   128,   0],
@@ -42,16 +43,16 @@ class RendererP3D:
         # self.Proj = E @ self.K
         # print(self.Proj)
         
-        self.cameras = FoVPerspectiveCameras(
-        R=torch.FloatTensor([[1, 0, 0],
-                            [0, -1, 0],
-                            [0, 0, -1]]).unsqueeze(0), T=torch.zeros((1, 3)), 
-                            zfar=1000, fov=7)
+        # self.cameras = FoVPerspectiveCameras(
+        # R=torch.FloatTensor([[1, 0, 0],
+        #                     [0, -1, 0],
+        #                     [0, 0, -1]]).unsqueeze(0), T=torch.zeros((1, 3)), 
+        #                     zfar=1000, fov=7)
         
         self.cameras = PerspectiveCameras(K=self.K.unsqueeze(0),
                                           R=self.R.unsqueeze(0), 
                                           T=self.T,
-                                          in_ndc=False,
+                                          in_ndc=False, 
                                           image_size=[(256,256)])
 
         # print(cameras)
@@ -94,11 +95,11 @@ class RendererP3D:
         )  
     def __call__(self, vertices):
         
-        print(self.faces.shape, vertices.shape)
+        # print(self.faces.shape, vertices.shape)
         
         color = torch.ones(1, vertices.shape[0], 3) * 0.9
         
-        print(color.shape)
+        # print(color.shape)
         
         vertices[:, 2] *= -1
         vertices[:, 0] *= -1
@@ -106,18 +107,18 @@ class RendererP3D:
         textures = TexturesVertex(verts_features=color)
         mesh = Meshes(verts=[vertices], faces=[self.faces], textures=textures)
         
-        fig = plot_scene({
-            "subplot1": {
-                "cow_mesh": Meshes(verts=[vertices], faces=[self.faces]),
-                # "camera": self.cameras
-            },
-        }) #, viewpoint_cameras=self.cameras)
-        fig.show()
+        # fig = plot_scene({
+        #     "subplot1": {
+        #         "cow_mesh": Meshes(verts=[vertices], faces=[self.faces]),
+        #         # "camera": self.cameras
+        #     },
+        # }) #, viewpoint_cameras=self.cameras)
+        # fig.show()
         
         output = self.renderer(mesh, zfar=1000)
         img = output[0, ..., :3].detach()
         mask = output[0, ..., 3].detach()
-        plt.imsave("./233.jpg", img.numpy())
+        # plt.imsave("./233.jpg", img.numpy())
         mask[mask > 0] = 1
     
         return img, mask

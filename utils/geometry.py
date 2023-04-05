@@ -106,7 +106,7 @@ def perspective_projection(points, rotation, translation,
     K[:,2,2] = 1.
     K[:,:-1, -1] = camera_center
 
-    print(K)
+    # print(K)
 
     # Apply camera intrinsicsrf
     points = points / points[:,:,-1].unsqueeze(-1)
