@@ -19,9 +19,9 @@ from utils.geometry import perspective_projection
 
 class RendererP3D:
     def __init__(self, focal_length=2167, faces=None, center=None, img_size=256, background=None) -> None:
-        # self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.focal_length = focal_length
-        self.faces = torch.IntTensor(faces)
+        self.faces = torch.IntTensor(faces).to(self.device)
 
     
         # E = torch.FloatTensor([[1, 0, 0, 0],
@@ -53,7 +53,7 @@ class RendererP3D:
                                           R=self.R.unsqueeze(0), 
                                           T=self.T,
                                           in_ndc=False, 
-                                          image_size=[(256,256)])
+                                          image_size=[(256,256)], device=self.device)
 
         # print(cameras)
         # R, T = look_at_view_transform(30, 0, 180) 
@@ -75,7 +75,7 @@ class RendererP3D:
         #  [-3.0649, -1.6582, -2.3060],
         #  [-2.0782, -4.1007,  1.1512]])))
         
-        lights = DirectionalLights()
+        lights = DirectionalLights(device=self.device)
         
         raster_settings = RasterizationSettings(
             image_size=img_size, 
@@ -91,6 +91,7 @@ class RendererP3D:
             shader=SoftPhongShader(
                 cameras=self.cameras,
                 lights=lights,
+                device=self.device
             )
         )  
     def __call__(self, vertices):
@@ -98,12 +99,15 @@ class RendererP3D:
         # print(self.faces.shape, vertices.shape)
         
         color = torch.ones(1, vertices.shape[0], 3) * 0.9
+        color = color.to(self.device)
         
         # print(color.shape)
         
         vertices[:, 2] *= -1
         vertices[:, 0] *= -1
         
+        vertices = vertices.to(self.device)
+
         textures = TexturesVertex(verts_features=color)
         mesh = Meshes(verts=[vertices], faces=[self.faces], textures=textures)
         
@@ -118,7 +122,7 @@ class RendererP3D:
         output = self.renderer(mesh, zfar=1000)
         img = output[0, ..., :3].detach()
         mask = output[0, ..., 3].detach()
-        # plt.imsave("./233.jpg", img.numpy())
+        plt.imsave("./233.jpg", img.cpu().numpy())
         mask[mask > 0] = 1
     
         return img, mask

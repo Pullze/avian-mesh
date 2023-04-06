@@ -108,3 +108,16 @@ def load_regressor(device='cpu'):
 
     return model
 
+def load_regressor_new(device='cpu'):
+    this_dir = os.path.dirname(__file__)
+    checkpoint = torch.load(this_dir+'/regressor_20.pth', map_location=device)
+
+    model = mesh_regressor()
+
+    model.to(device)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+
+    return model
+
+
