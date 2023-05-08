@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     # Load model and optimizer
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    bird = bird_model()
+    bird = bird_model(mesh='bird_fly_eccv.json')
     predictor = load_detector().to(device)
     regressor = load_regressor().to(device)
     print('Device used:', device)
@@ -55,13 +55,14 @@ if __name__ == '__main__':
 
 
     # Run on the indexed sample from the validset
-    imgs, target_kpts, target_masks, meta = valid_set[89]
+    imgs, target_kpts, target_masks, meta = valid_set[0]
     imgs = imgs[None]
 
     with torch.no_grad():
         # Prediction
         output = predictor(imgs.to(device))
         pred_kpts, pred_mask = postprocess(output)
+        # print(pred_kpts.shape)
 
         # Regression
         kpts_in = pred_kpts.reshape(pred_kpts.shape[0], -1)
@@ -69,12 +70,13 @@ if __name__ == '__main__':
         p_est, b_est = regressor(kpts_in, mask_in)
         pose, tran, bone = regressor.postprocess(p_est, b_est)
         # print(tran)
-        print(pose.shape, tran.shape, bone.shape)
+        # print(pose.shape, tran.shape, bone.shape)
 
     # Optimization
     ignored = pred_kpts[:, :, 2] < 0.3
     opt_kpts = pred_kpts.clone()
     opt_kpts[ignored] = 0
+    # print(opt_kpts.shape)
     pose_op, bone_op, tran_op, model_mesh = optimizer(pose, bone, tran, 
                                           focal_length=2167, camera_center=128, 
                                           keypoints=opt_kpts, masks=mask_in.squeeze(1))
@@ -88,8 +90,8 @@ if __name__ == '__main__':
     for i, img in enumerate(imgs):
         img_out = unnormalize(img)
         img_out = img_out.permute(1,2,0)[:,:,[2,1,0]] * 255
-        img_opt, _ = render_sample(bird, model_mesh[i], background=img_out)
-        # img_opt, _ = render_sample_new(bird, model_mesh[i])
+        # img_opt, _ = render_sample(bird, model_mesh[i], background=img_out)
+        img_opt, _ = render_sample_new(bird, model_mesh[i])
 
         img_save = np.zeros([256, 256*2, 3]).astype(np.uint8)
         img_save[:, 256*0:256*(0+1), :] = img_out

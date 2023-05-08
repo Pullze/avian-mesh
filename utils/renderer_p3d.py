@@ -103,6 +103,7 @@ class RendererP3D:
         
         # print(color.shape)
         
+        ## TODO: remove this filp for model other than bird!!!!
         vertices[:, 2] *= -1
         vertices[:, 0] *= -1
         
@@ -122,7 +123,7 @@ class RendererP3D:
         output = self.renderer(mesh, zfar=1000)
         img = output[0, ..., :3].detach()
         mask = output[0, ..., 3].detach()
-        plt.imsave("./233.jpg", img.cpu().numpy())
+        # plt.imsave("./233.jpg", img.cpu().numpy())
         mask[mask > 0] = 1
     
         return img, mask

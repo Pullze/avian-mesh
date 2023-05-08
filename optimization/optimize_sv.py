@@ -26,7 +26,7 @@ class OptimizeSV():
             self.renderer = renderer
 
         # Load Bird Mesh Model and prior
-        self.bird = bird_model(device=device)
+        self.bird = bird_model(device=device, mesh='bird_eccv.json')
         self.faces = torch.tensor(self.bird.dd['F'])
         self.p_m = self.bird.p_m
         self.b_m = self.bird.b_m
